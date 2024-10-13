@@ -1,70 +1,123 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import { Image, StyleSheet, Platform, View, Text, TouchableOpacity, FlatList, Modal } from 'react-native';
+import React from 'react';
+import { AntDesign } from '@expo/vector-icons';
+import colors from '../../colors';
+import tempData from '../../tempData';
+import TodoList from '@/components/TodoList';
+import AddListModal from '@/components/AddListModal';
+import Fire from '../../Fire';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
 
-export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
-  );
+
+export default class App extends React.Component {
+  state ={
+    addTodoVisible: false,
+    lists: tempData
+  };
+
+  // componentDidMount() {
+  //     firebase = new Fire();
+  // }
+  // componentDidMount(): void {
+  //   firebase = new Fire((error, user) => {
+  //     if(error) {
+  //       return alert("Uh oh, somethinf went wrong");
+  //     }
+  //   });
+  // }
+  
+  toggleAddTodoModal() {
+    this.setState({ addTodoVisible: !this.state.addTodoVisible });
+  }
+
+  renderList = list => {
+    return <TodoList list={list} updateList={this.updateList}/>;
+  }
+
+  addList = list => {
+    this.setState({ lists : [...this.state.lists, { ...list, id: this.state.lists.length + 1, todos: [] }]});
+  };
+
+  updateList = list => {
+    this.setState ({
+      lists: this.state.lists.map(item => {
+        return item.id === list.id ? list : item;
+      })
+    });
+  };
+
+  render() {
+    return (
+      <View style={styles.container}>
+        <Modal 
+          animationType="slide" 
+          visible={this.state.addTodoVisible}
+          onRequestClose={() => this.toggleAddTodoModal()}
+        >
+           <AddListModal closeModal={() => this.toggleAddTodoModal()} addList={this.addList}/>
+        </Modal>
+    
+        <View style={{flexDirection: "row"}}>
+          <View style={styles.divider} />
+          <Text style={styles.title}>
+            Test 
+            <Text style={{ fontWeight: "300", color: colors.blue }}> Etalik</Text>
+          </Text>      
+          <View style={styles.divider} />
+        </View> 
+
+        <View style={{marginVertical: 48}}>
+          <TouchableOpacity style={styles.addList} onPress= {() => this.toggleAddTodoModal()}>
+            <AntDesign name="plus" size={16} color={colors.blue} />
+          </TouchableOpacity>
+          <Text style={styles.add}>Add project</Text>
+        </View>  
+
+        <View style={{height: 275, paddingLeft: 32}}>
+          <FlatList
+            data={this.state.lists}
+            keyExtractor={item => item.name}
+            horizontal ={true}
+            showsHorizontalScrollIndicator={false}
+            renderItem={({item}) => this.renderList(item)}  
+            keyboardShouldPersistTaps="always" 
+          />
+        </View>
+      </View>
+    );  
+  }
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  divider:{
+    backgroundColor: colors.lightBlue,
+    height: 1,
+    flex: 1,
+    alignSelf: "center"
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  title: {
+    fontSize: 38,
+    fontWeight: "800",
+    color: colors.black,
+    paddingHorizontal: 64
   },
+  addList: {
+    borderWidth: 2,
+    borderColor: colors.lightBlue,
+    borderRadius: 4,
+    padding: 16,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  add :{
+    color: colors.blue,
+    fontWeight: "900",
+    fontSize: 14,
+    marginTop: 8
+  }
 });
